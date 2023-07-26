@@ -43,8 +43,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 public class LocationUpdateService extends AbstractCommonService implements ProcessResultFromAddressResolution, LocationListener {
@@ -205,7 +203,47 @@ public class LocationUpdateService extends AbstractCommonService implements Proc
         sendMessageToWeatherForecastService(currentLocation.getId(), updateSource, forceUpdate);
         stopForeground(true);
     }
-
+    /*
+This method is to refactor the complex method processUpdateOfLocation
+ */
+    public void checkCurrentLocation(Location location, String currentLocationSource, String updateDetailLevel){
+        if ("gps".equals(location.getProvider())) {
+            if ((currentLocationSource == null) || !currentLocationSource.contains(getString(R.string.location_weather_update_status_location_from_gps))) {
+                currentLocationSource = getString(R.string.location_weather_update_status_location_from_gps);
+            }
+        } else if (updateDetailLevel.equals("preference_display_update_location_source")) {
+            StringBuilder networkSourceBuilder = new StringBuilder();
+            networkSourceBuilder.append(getString(R.string.location_weather_update_status_location_from_network));
+            boolean additionalSourceSetted = false;
+            //here we just extracted the condition into the new method
+            checkInsideCurrentLocation(location,networkSourceBuilder, additionalSourceSetted);
+            currentLocationSource = networkSourceBuilder.toString();
+            appendLog(getBaseContext(), TAG, "send update source to ", currentLocationSource);
+        } else if (getString(R.string.location_weather_update_status_update_started).equals(currentLocationSource)) {
+            currentLocationSource = getString(R.string.location_weather_update_status_location_from_network);
+        }
+    }
+    /*
+    This method is to refactor the complex method processUpdateOfLocation
+     */
+    public void checkInsideCurrentLocation(Location location, StringBuilder networkSourceBuilder, boolean additionalSourceSetted){
+        if ((location.getExtras() != null) && (location.getExtras().containsKey("source"))) {
+            String networkSource = location.getExtras().getString("source");
+            if (networkSource != null) {
+                if (networkSource.contains("cells")) {
+                    networkSourceBuilder.append(getString(R.string.location_weather_update_status_location_from_network_cells));
+                    additionalSourceSetted = true;
+                }
+                if (networkSource.contains("wifis")) {
+                    networkSourceBuilder.append(getString(R.string.location_weather_update_status_location_from_network_wifis));
+                    additionalSourceSetted = true;
+                }
+            }
+        }
+        if (!additionalSourceSetted) {
+            networkSourceBuilder.append(location.getProvider().substring(0, 1));
+        }
+    }
     private org.thosp.yourlocalweather.model.Location processUpdateOfLocation(Location location, Address address) {
         LocationsDbHelper locationsDbHelper = LocationsDbHelper.getInstance(getBaseContext());
 
@@ -215,36 +253,9 @@ public class LocationUpdateService extends AbstractCommonService implements Proc
         org.thosp.yourlocalweather.model.Location currentLocation = locationsDbHelper.getLocationByOrderId(0);
 
         String currentLocationSource = currentLocation.getLocationSource();
-        if ("gps".equals(location.getProvider())) {
-            if ((currentLocationSource == null) || !currentLocationSource.contains(getString(R.string.location_weather_update_status_location_from_gps))) {
-                currentLocationSource = getString(R.string.location_weather_update_status_location_from_gps);
-            }
-        } else if (updateDetailLevel.equals("preference_display_update_location_source")) {
-            StringBuilder networkSourceBuilder = new StringBuilder();
-            networkSourceBuilder.append(getString(R.string.location_weather_update_status_location_from_network));
-            boolean additionalSourceSetted = false;
+        //here we just extracted the conditions into the new method
+        checkCurrentLocation(location, currentLocationSource, updateDetailLevel);
 
-            if ((location.getExtras() != null) && (location.getExtras().containsKey("source"))) {
-                String networkSource = location.getExtras().getString("source");
-                if (networkSource != null) {
-                    if (networkSource.contains("cells")) {
-                        networkSourceBuilder.append(getString(R.string.location_weather_update_status_location_from_network_cells));
-                        additionalSourceSetted = true;
-                    }
-                    if (networkSource.contains("wifis")) {
-                        networkSourceBuilder.append(getString(R.string.location_weather_update_status_location_from_network_wifis));
-                        additionalSourceSetted = true;
-                    }
-                }
-            }
-            if (!additionalSourceSetted) {
-                networkSourceBuilder.append(location.getProvider().substring(0, 1));
-            }
-            currentLocationSource = networkSourceBuilder.toString();
-            appendLog(getBaseContext(), TAG, "send update source to ", currentLocationSource);
-        } else if (getString(R.string.location_weather_update_status_update_started).equals(currentLocationSource)) {
-            currentLocationSource = getString(R.string.location_weather_update_status_location_from_network);
-        }
         currentLocation = locationsDbHelper.getLocationById(currentLocation.getId());
         checkDistanceAndRemoveForecastIfTheNewLocationIsFarAway(location, currentLocation);
         locationsDbHelper.updateAutoLocationGeoLocation(location.getLatitude(), location.getLongitude(), currentLocationSource, location.getAccuracy(), getLocationTimeInMilis(location));
