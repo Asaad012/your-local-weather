@@ -153,7 +153,7 @@ public abstract class AbstractWidgetProvider extends AppWidgetProvider {
                 context.startActivity(activityIntent);
             } else if (intent.getAction().startsWith(Constants.ACTION_APPWIDGET_CHANGE_LOCATION)) {
                 WidgetSettingsDbHelper widgetSettingsDbHelper = WidgetSettingsDbHelper.getInstance(context);
-                changeLocation(widgetId, locationsDbHelper, widgetSettingsDbHelper);
+                currentLocation.changeLocation(widgetId, locationsDbHelper, widgetSettingsDbHelper,currentLocation);
                 GraphUtils.invalidateGraph();
                 onUpdate(context, widgetManager, new int[]{widgetId});
             } else if (intent.getAction().startsWith(Constants.ACTION_FORCED_APPWIDGET_UPDATE)) {
@@ -443,31 +443,6 @@ public abstract class AbstractWidgetProvider extends AppWidgetProvider {
             }
         } else {
             currentLocation = locationsDbHelper.getLocationById(locationId);
-        }
-    }
-
-    private void changeLocation(int widgetId,
-                                LocationsDbHelper locationsDbHelper,
-                                WidgetSettingsDbHelper widgetSettingsDbHelper) {
-        if (currentLocation == null) {
-            currentLocation = locationsDbHelper.getLocationByOrderId(0);
-            if ((currentLocation == null) || !currentLocation.isEnabled()) {
-                currentLocation = locationsDbHelper.getLocationByOrderId(1);
-            }
-            if (currentLocation == null) {
-                return;
-            }
-        }
-        int newOrderId = 1 + currentLocation.getOrderId();
-        currentLocation = locationsDbHelper.getLocationByOrderId(newOrderId);
-        if (currentLocation == null) {
-            currentLocation = locationsDbHelper.getLocationByOrderId(0);
-            if ((currentLocation == null) || !currentLocation.isEnabled()) {
-                currentLocation = locationsDbHelper.getLocationByOrderId(1);
-            }
-        }
-        if (currentLocation != null) {
-            widgetSettingsDbHelper.saveParamLong(widgetId, "locationId", currentLocation.getId());
         }
     }
 

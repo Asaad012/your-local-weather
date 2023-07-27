@@ -187,4 +187,28 @@ public class Location implements Parcelable {
             return null;
         }
     }
+    public static void changeLocation(int widgetId,
+                                LocationsDbHelper locationsDbHelper,
+                                WidgetSettingsDbHelper widgetSettingsDbHelper, Location currentLocation) {
+        if (currentLocation == null) {
+            currentLocation = locationsDbHelper.getLocationByOrderId(0);
+            if ((currentLocation == null) || !currentLocation.isEnabled()) {
+                currentLocation = locationsDbHelper.getLocationByOrderId(1);
+            }
+            if (currentLocation == null) {
+                return;
+            }
+        }
+        int newOrderId = 1 + currentLocation.getOrderId();
+        currentLocation = locationsDbHelper.getLocationByOrderId(newOrderId);
+        if (currentLocation == null) {
+            currentLocation = locationsDbHelper.getLocationByOrderId(0);
+            if ((currentLocation == null) || !currentLocation.isEnabled()) {
+                currentLocation = locationsDbHelper.getLocationByOrderId(1);
+            }
+        }
+        if (currentLocation != null) {
+            widgetSettingsDbHelper.saveParamLong(widgetId, "locationId", currentLocation.getId());
+        }
+    }
 }
