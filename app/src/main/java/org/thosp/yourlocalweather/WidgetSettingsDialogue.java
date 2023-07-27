@@ -329,7 +329,51 @@ public class WidgetSettingsDialogue extends Activity {
         AlertDialog dialog = builder.create();
         dialog.show();
     }
+    //extract method to handle the null locationID
+public void noLocationId (Long locationId , Location currentLocation, LocationsDbHelper locationsDbHelper){
+    if (locationId == null) {
+        currentLocation = locationsDbHelper.getLocationByOrderId(0);
+        if ((currentLocation == null) || !currentLocation.isEnabled()) {
+            currentLocation = locationsDbHelper.getLocationByOrderId(1);
+            if ((currentLocation != null) && currentLocation.isEnabled()) {
+                locationId = currentLocation.getId();
+            }
+        } else {
+            locationId = currentLocation.getId();
+        }
+    } else {
+        currentLocation = locationsDbHelper.getLocationById(locationId);
+    }
 
+    if (locationId == null) {
+        locationId = 0l;
+        currentLocation = locationsDbHelper.getLocationById(locationId);
+    }
+}
+public void handleLocationLabels (List<Location> allLocations, List<String> locationLabels){
+    for (Location location: allLocations) {
+        StringBuilder locationLabel = new StringBuilder();
+        locationLabel.append(location.getOrderId());
+        if (location.getAddress() != null) {
+            locationLabel.append(" - ");
+            locationLabel.append(Utils.getCityAndCountryFromAddress(location.getAddress()));
+        }
+        locationLabels.add(locationLabel.toString());
+    }
+}
+public void showAndHideLocation (boolean hasLocationToHide,Switch showLocationSwitch, Boolean showLocation, GraphValuesSwitchListener showLocationSwitchListener){
+    if (showLocation == null) {
+        showLocation = false;
+    }
+
+    if (hasLocationToHide) {
+        showLocationSwitch.setVisibility(View.VISIBLE);
+        showLocationSwitch.setChecked(showLocation);
+        showLocationSwitch.setOnCheckedChangeListener(showLocationSwitchListener);
+    } else {
+        showLocationSwitch.setVisibility(View.GONE);
+    }
+}
     @SuppressLint("MissingInflatedId")
     private void createLocationSettingsDialog(final int widgetId) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -341,38 +385,14 @@ public class WidgetSettingsDialogue extends Activity {
 
         Long locationId = widgetSettingsDbHelper.getParamLong(widgetId, "locationId");
 
-        Location currentLocation;
-        if (locationId == null) {
-            currentLocation = locationsDbHelper.getLocationByOrderId(0);
-            if ((currentLocation == null) || !currentLocation.isEnabled()) {
-                currentLocation = locationsDbHelper.getLocationByOrderId(1);
-                if ((currentLocation != null) && currentLocation.isEnabled()) {
-                    locationId = currentLocation.getId();
-                }
-            } else {
-                locationId = currentLocation.getId();
-            }
-        } else {
-            currentLocation = locationsDbHelper.getLocationById(locationId);
-        }
-
-        if (locationId == null) {
-            locationId = 0l;
-            currentLocation = locationsDbHelper.getLocationById(locationId);
-        }
-
+        Location currentLocation = null;
+        //instead of previous block that handle no locationID it was extracted to other method called noLocationId
+        noLocationId (locationId, currentLocation, locationsDbHelper);
         List<Location> allLocations = locationsDbHelper.getAllRows();
 
         List<String> locationLabels = new ArrayList<>();
-        for (Location location: allLocations) {
-            StringBuilder locationLabel = new StringBuilder();
-            locationLabel.append(location.getOrderId());
-            if (location.getAddress() != null) {
-                locationLabel.append(" - ");
-                locationLabel.append(Utils.getCityAndCountryFromAddress(location.getAddress()));
-            }
-            locationLabels.add(locationLabel.toString());
-        }
+        //here also we handle locationLabels in other code
+        handleLocationLabels(allLocations, locationLabels);
 
         Spinner numberOfDaysSpinner = forecastSettingView.findViewById(R.id.widget_setting_location_locations);
         final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, locationLabels);
@@ -411,17 +431,9 @@ public class WidgetSettingsDialogue extends Activity {
         final boolean saveLocationSetting = hasLocationToHide;
         final Switch showLocationSwitch = forecastSettingView.findViewById(R.id.widget_setting_show_location);
         Boolean showLocation = widgetSettingsDbHelper.getParamBoolean(widgetId, "showLocation");
-        if (showLocation == null) {
-            showLocation = false;
-        }
         final GraphValuesSwitchListener showLocationSwitchListener = new GraphValuesSwitchListener(showLocation);
-        if (hasLocationToHide) {
-            showLocationSwitch.setVisibility(View.VISIBLE);
-            showLocationSwitch.setChecked(showLocation);
-            showLocationSwitch.setOnCheckedChangeListener(showLocationSwitchListener);
-        } else {
-            showLocationSwitch.setVisibility(View.GONE);
-        }
+        //fixed the block of code to show or hide location
+        showAndHideLocation(hasLocationToHide, showLocationSwitch,showLocation, showLocationSwitchListener);
 
         builder.setView(forecastSettingView)
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {

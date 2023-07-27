@@ -57,7 +57,7 @@ public class LongWeatherForecastItemViewHolder extends RecyclerView.ViewHolder {
         mRainSnow = (TextView) itemView.findViewById(R.id.forecast_rainsnow);
         mDescription = (TextView) itemView.findViewById(R.id.forecast_description);
     }
-    public static class WeatherPrefrences{
+    public static class WeatherPreferences {
         Context context;
         double latitude;
         Locale locale;
@@ -68,13 +68,13 @@ public class LongWeatherForecastItemViewHolder extends RecyclerView.ViewHolder {
         String temperatureUnitFromPreferences;
         Set<Integer> visibleColumns;
 
-        public WeatherPrefrences() {
+        public WeatherPreferences() {
         }
 
-        public WeatherPrefrences(Context context, double latitude, Locale locale,
-                                 DetailedWeatherForecast weather, String pressureUnitFromPreferences,
-                                 String rainSnowUnitFromPreferences, String windUnitFromPreferences,
-                                 String temperatureUnitFromPreferences, Set<Integer> visibleColumns) {
+        public WeatherPreferences(Context context, double latitude, Locale locale,
+                                  DetailedWeatherForecast weather, String pressureUnitFromPreferences,
+                                  String rainSnowUnitFromPreferences, String windUnitFromPreferences,
+                                  String temperatureUnitFromPreferences, Set<Integer> visibleColumns) {
             this.context = context;
             this.latitude = latitude;
             this.locale = locale;
@@ -158,16 +158,16 @@ public class LongWeatherForecastItemViewHolder extends RecyclerView.ViewHolder {
             this.visibleColumns = visibleColumns;
         }
     }
-    void bindWeather(WeatherPrefrences weatherPrefrences) {
-        mWeatherForecast = weatherPrefrences.getWeather();
+    void bindWeather(WeatherPreferences weatherPreferences) {
+        mWeatherForecast = weatherPreferences.getWeather();
 
         Typeface typeface = Typeface.createFromAsset(mContext.getAssets(),
                 "fonts/weathericons-regular-webfont.ttf");
-        WeatherCondition weatherCondition = weatherPrefrences.getWeather().getFirstWeatherCondition();
+        WeatherCondition weatherCondition = weatherPreferences.getWeather().getFirstWeatherCondition();
 
-        if (weatherPrefrences.getVisibleColumns().contains(1)) {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("d.M", weatherPrefrences.getLocale());
-            Date date = new Date(weatherPrefrences.getWeather().getDateTime() * 1000);
+        if (weatherPreferences.getVisibleColumns().contains(1)) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("d.M", weatherPreferences.getLocale());
+            Date date = new Date(weatherPreferences.getWeather().getDateTime() * 1000);
             Calendar currentRowDate = Calendar.getInstance();
             currentRowDate.setTime(date);
             mDate.setVisibility(View.VISIBLE);
@@ -176,7 +176,7 @@ public class LongWeatherForecastItemViewHolder extends RecyclerView.ViewHolder {
         } else {
             mDate.setVisibility(View.GONE);
         }
-        if (weatherPrefrences.getVisibleColumns().contains(2)) {
+        if (weatherPreferences.getVisibleColumns().contains(2)) {
             mIcon.setVisibility(View.VISIBLE);
             mIcon.setTypeface(typeface);
             if (weatherCondition != null) {
@@ -185,51 +185,51 @@ public class LongWeatherForecastItemViewHolder extends RecyclerView.ViewHolder {
         } else {
             mIcon.setVisibility(View.GONE);
         }
-        if (weatherPrefrences.getVisibleColumns().contains(3)) {
+        if (weatherPreferences.getVisibleColumns().contains(3)) {
             mDescription.setVisibility(View.VISIBLE);
             if (weatherCondition != null) {
-                mDescription.setText(weatherPrefrences.getWeather().getFirstWeatherCondition().getDescription());
+                mDescription.setText(weatherPreferences.getWeather().getFirstWeatherCondition().getDescription());
             }
         } else {
             mDescription.setVisibility(View.GONE);
         }
-        if (weatherPrefrences.getVisibleColumns().contains(4)) {
+        if (weatherPreferences.getVisibleColumns().contains(4)) {
             mTemperature.setVisibility(View.VISIBLE);
             String temperature = mContext.getString(R.string.temperature_with_degree,
-                    TemperatureUtil.getForecastedTemperatureWithUnit(mContext, weatherPrefrences.getWeather(), weatherPrefrences.getTemperatureUnitFromPreferences(), weatherPrefrences.getLocale()));
+                    TemperatureUtil.getForecastedTemperatureWithUnit(mContext, weatherPreferences.getWeather(), weatherPreferences.getTemperatureUnitFromPreferences(), weatherPreferences.getLocale()));
             mTemperature.setText(temperature);
         } else {
             mTemperature.setVisibility(View.GONE);
         }
-        if (weatherPrefrences.getVisibleColumns().contains(5)) {
+        if (weatherPreferences.getVisibleColumns().contains(5)) {
             mApparentTemperature.setVisibility(View.VISIBLE);
             String apparentTemperature = mContext.getString(R.string.temperature_with_degree,
-                    TemperatureUtil.getForecastedApparentTemperatureWithUnit(mContext, weatherPrefrences.getLatitude(), weatherPrefrences.getWeather(), weatherPrefrences.getTemperatureUnitFromPreferences(), weatherPrefrences.getLocale()));
+                    TemperatureUtil.getForecastedApparentTemperatureWithUnit(mContext, weatherPreferences.getLatitude(), weatherPreferences.getWeather(), weatherPreferences.getTemperatureUnitFromPreferences(), weatherPreferences.getLocale()));
             mApparentTemperature.setText(apparentTemperature);
         } else {
             mApparentTemperature.setVisibility(View.GONE);
         }
-        if (weatherPrefrences.getVisibleColumns().contains(6)) {
+        if (weatherPreferences.getVisibleColumns().contains(6)) {
             mWind.setVisibility(View.VISIBLE);
-            mWind.setText(AppPreference.getWindInString(mContext, weatherPrefrences.getWindUnitFromPreferences(), weatherPrefrences.getWeather().getWindSpeed(), weatherPrefrences.getLocale()));
+            mWind.setText(AppPreference.getWindInString(mContext, weatherPreferences.getWindUnitFromPreferences(), weatherPreferences.getWeather().getWindSpeed(), weatherPreferences.getLocale()));
         } else {
             mWind.setVisibility(View.GONE);
         }
-        if (weatherPrefrences.getVisibleColumns().contains(7)) {
+        if (weatherPreferences.getVisibleColumns().contains(7)) {
             windDirection.setVisibility(View.VISIBLE);
-            windDirection.setText(AppPreference.getWindDirection(mContext, weatherPrefrences.getWeather().getWindDegree(), weatherPrefrences.getLocale()));
+            windDirection.setText(AppPreference.getWindDirection(mContext, weatherPreferences.getWeather().getWindDegree(), weatherPreferences.getLocale()));
         } else {
             windDirection.setVisibility(View.GONE);
         }
-        if (weatherPrefrences.getVisibleColumns().contains(8)) {
+        if (weatherPreferences.getVisibleColumns().contains(8)) {
             mRainSnow.setVisibility(View.VISIBLE);
-            boolean noRain = weatherPrefrences.getWeather().getRain() < 0.1;
-            boolean noSnow = weatherPrefrences.getWeather().getSnow() < 0.1;
+            boolean noRain = weatherPreferences.getWeather().getRain() < 0.1;
+            boolean noSnow = weatherPreferences.getWeather().getSnow() < 0.1;
             if (noRain && noSnow) {
                 mRainSnow.setText("");
             } else {
-                String rain = AppPreference.getFormatedRainOrSnow(weatherPrefrences.getRainSnowUnitFromPreferences(), weatherPrefrences.getWeather().getRain(), weatherPrefrences.getLocale());
-                String snow = AppPreference.getFormatedRainOrSnow(weatherPrefrences.getRainSnowUnitFromPreferences(), weatherPrefrences.getWeather().getSnow(), weatherPrefrences.getLocale());
+                String rain = AppPreference.getFormatedRainOrSnow(weatherPreferences.getRainSnowUnitFromPreferences(), weatherPreferences.getWeather().getRain(), weatherPreferences.getLocale());
+                String snow = AppPreference.getFormatedRainOrSnow(weatherPreferences.getRainSnowUnitFromPreferences(), weatherPreferences.getWeather().getSnow(), weatherPreferences.getLocale());
                 if (!noRain && !noSnow) {
                     mRainSnow.setText(rain + "/" + snow);
                 } else if (noSnow) {
@@ -239,20 +239,20 @@ public class LongWeatherForecastItemViewHolder extends RecyclerView.ViewHolder {
                 }
             }
             ViewGroup.LayoutParams params=mRainSnow.getLayoutParams();
-            params.width = Utils.spToPx(AppPreference.getRainOrSnowForecastWeadherWidth(weatherPrefrences.getContext()), weatherPrefrences.getContext());
+            params.width = Utils.spToPx(AppPreference.getRainOrSnowForecastWeadherWidth(weatherPreferences.getContext()), weatherPreferences.getContext());
             mRainSnow.setLayoutParams(params);
         } else {
             mRainSnow.setVisibility(View.GONE);
         }
-        if (weatherPrefrences.getVisibleColumns().contains(9)) {
+        if (weatherPreferences.getVisibleColumns().contains(9)) {
             mHumidity.setVisibility(View.VISIBLE);
-            mHumidity.setText(String.format(weatherPrefrences.getLocale(), "%d", weatherPrefrences.getWeather().getHumidity()));
+            mHumidity.setText(String.format(weatherPreferences.getLocale(), "%d", weatherPreferences.getWeather().getHumidity()));
         } else {
             mHumidity.setVisibility(View.GONE);
         }
-        if (weatherPrefrences.getVisibleColumns().contains(10)) {
+        if (weatherPreferences.getVisibleColumns().contains(10)) {
             mPressure.setVisibility(View.VISIBLE);
-            mPressure.setText(AppPreference.getPressureInString(mContext, weatherPrefrences.getWeather().getPressure(), weatherPrefrences.getPressureUnitFromPreferences(), weatherPrefrences.getLocale()));
+            mPressure.setText(AppPreference.getPressureInString(mContext, weatherPreferences.getWeather().getPressure(), weatherPreferences.getPressureUnitFromPreferences(), weatherPreferences.getLocale()));
         } else {
             mPressure.setVisibility(View.GONE);
         }

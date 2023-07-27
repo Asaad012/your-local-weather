@@ -56,17 +56,17 @@ public class LongWeatherForecastItemAdapter extends RecyclerView.Adapter<LongWea
     @Override
     public void onBindViewHolder(LongWeatherForecastItemViewHolder holder, int position) {
         DetailedWeatherForecast weather = mWeatherList.get(position);
-        LongWeatherForecastItemViewHolder.WeatherPrefrences weatherPrefrences = new LongWeatherForecastItemViewHolder.WeatherPrefrences();
-        weatherPrefrences.setWeather(weather);
-        weatherPrefrences.setContext(mContext);
-        weatherPrefrences.setLocale(locale);
-        weatherPrefrences.setVisibleColumns(visibleColumns);
-        weatherPrefrences.setPressureUnitFromPreferences(pressureUnitFromPreferences);
-        weatherPrefrences.setRainSnowUnitFromPreferences(rainSnowUnitFromPreferences);
-        weatherPrefrences.setWindUnitFromPreferences(windUnitFromPreferences);
-        weatherPrefrences.setLatitude(latitude);
-        weatherPrefrences.setTemperatureUnitFromPreferences(temperatureUnitFromPreferences);
-        holder.bindWeather(weatherPrefrences);
+        LongWeatherForecastItemViewHolder.WeatherPreferences weatherPreferences = new LongWeatherForecastItemViewHolder.WeatherPreferences();
+        weatherPreferences.setWeather(weather);
+        weatherPreferences.setContext(mContext);
+        weatherPreferences.setLocale(locale);
+        weatherPreferences.setVisibleColumns(visibleColumns);
+        weatherPreferences.setPressureUnitFromPreferences(pressureUnitFromPreferences);
+        weatherPreferences.setRainSnowUnitFromPreferences(rainSnowUnitFromPreferences);
+        weatherPreferences.setWindUnitFromPreferences(windUnitFromPreferences);
+        weatherPreferences.setLatitude(latitude);
+        weatherPreferences.setTemperatureUnitFromPreferences(temperatureUnitFromPreferences);
+        holder.bindWeather(weatherPreferences);
     }
 
     @Override
