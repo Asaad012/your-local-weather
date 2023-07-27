@@ -14,28 +14,12 @@ import java.util.Locale;
 
 import static org.thosp.yourlocalweather.utils.LogToFile.appendLog;
 
-public class TemperatureUtil {
+public class TemperatureUtil extends TemperatureUtil2{
 
     private static final String TAG = "TemperatureUtil";
     private static double SOLAR_CONSTANT = 1395; // solar constant (w/m2)
     private static double transmissionCoefficientClearDay = 0.81;
     private static double transmissionCoefficientCloudy = 0.62;
-
-    public static float getApparentTemperature(double dryBulbTemperature,
-                                               int humidity,
-                                               double windSpeed,
-                                               int cloudiness,
-                                               double latitude,
-                                               long timestamp) {
-        return getApparentTemperatureWithSolarIrradiation(dryBulbTemperature, humidity, windSpeed, cloudiness, latitude, timestamp);
-    }
-
-    public static float getApparentTemperatureWithoutSolarIrradiation(double dryBulbTemperature, int humidity, double windSpeed) {
-        double e = (humidity / 100f) * 6.105 * Math.exp((17.27*dryBulbTemperature) / (237.7 + dryBulbTemperature));
-        double apparentTemperature = dryBulbTemperature + (0.33*e)-(0.70*windSpeed)-4.00;
-        return (float)apparentTemperature;
-    }
-
     public static float getApparentTemperatureWithSolarIrradiation(double dryBulbTemperature,
                                                                    int humidity,
                                                                    double windSpeed,
@@ -54,7 +38,6 @@ public class TemperatureUtil {
         double apparentTemperature = dryBulbTemperature + (0.348 * e) - (0.70 * windSpeed) + ((0.70 * calculatedIrradiation)/(windSpeed + 10)) - 4.25;
         return (float)apparentTemperature;
     }
-
     private static double getCosOfZenithAngle(double latitude, long timestamp) {
         Calendar measuredTime = Calendar.getInstance();
         measuredTime.setTimeInMillis(timestamp);
@@ -92,6 +75,7 @@ public class TemperatureUtil {
     }
 
     public static String getSecondTemperatureWithUnit(Context context, Weather weather, double latitude, long timestamp, String temperatureUnitFromPreferences, Locale locale) {
+
         if (weather == null) {
             return null;
         }
@@ -104,7 +88,7 @@ public class TemperatureUtil {
         double value = weather.getTemperature();
         if ("measured_appearance_primary_measured".equals(temperatureTypeFromPreferences)) {
             apparentSign = "~";
-            value = TemperatureUtil.getApparentTemperature(
+            value = TemperatureUtil2.getApparentTemperature(
                     weather.getTemperature(),
                     weather.getHumidity(),
                     weather.getWindSpeed(),
@@ -134,7 +118,7 @@ public class TemperatureUtil {
         if ("appearance_only".equals(temeratureTypeFromPreferences) ||
                 ("measured_appearance_primary_appearance".equals(temeratureTypeFromPreferences))) {
             apparentSign = "~";
-            value = getApparentTemperature(
+            value = TemperatureUtil2.getApparentTemperature(
                     weather.getTemperature(),
                     weather.getHumidity(),
                     weather.getWindSpeed(),
@@ -181,7 +165,7 @@ public class TemperatureUtil {
             return null;
         }
         String apparentSign = "";
-        double value = getApparentTemperatureWithSolarIrradiation(
+        double value = TemperatureUtil.getApparentTemperatureWithSolarIrradiation(
                     weather.getTemperature(),
                     weather.getHumidity(),
                     weather.getWindSpeed(),
@@ -231,20 +215,6 @@ public class TemperatureUtil {
         }
     }
 
-    public static double getTemperature(Context context, String unitsFromPreferences, DetailedWeatherForecast weather) {
-        if (weather == null) {
-            return 0;
-        }
-        return getTemperatureInPreferredUnit(context, unitsFromPreferences, getTemperatureInCelsius(context, weather));
-    }
-
-    public static double getTemperature(Context context, String temperatureUnitFromPreferences, Weather weather) {
-        if (weather == null) {
-            return 0;
-        }
-        return getTemperatureInPreferredUnit(temperatureUnitFromPreferences, getTemperatureInCelsius(context, weather));
-    }
-
     public static double getTemperatureInCelsius(Context context, DetailedWeatherForecast weather) {
         if (weather == null) {
             return 0;
@@ -254,14 +224,13 @@ public class TemperatureUtil {
         double value = weather.getTemperature();
         if ("appearance_only".equals(temperatureTypeFromPreferences) ||
                 ("measured_appearance_primary_appearance".equals(temperatureTypeFromPreferences))) {
-            value = getApparentTemperatureWithoutSolarIrradiation(
+            value = TemperatureUtil2.getApparentTemperatureWithoutSolarIrradiation(
                     weather.getTemperature(),
                     weather.getHumidity(),
                     weather.getWindSpeed());
         }
         return value;
     }
-
     public static double getTemperatureInCelsius(Context context, Weather weather) {
         if (weather == null) {
             return 0;
@@ -271,19 +240,18 @@ public class TemperatureUtil {
         double value = weather.getTemperature();
         if ("appearance_only".equals(temperatureTypeFromPreferences) ||
                 ("measured_appearance_primary_appearance".equals(temperatureTypeFromPreferences))) {
-            value = getApparentTemperatureWithoutSolarIrradiation(
+            value = TemperatureUtil2.getApparentTemperatureWithoutSolarIrradiation(
                     weather.getTemperature(),
                     weather.getHumidity(),
                     weather.getWindSpeed());
         }
         return value;
     }
-
     public static int getTemperatureStatusIcon(Context context, String temperatureUnitFromPreferences, CurrentWeatherDbHelper.WeatherRecord weatherRecord) {
         if ((weatherRecord == null) || (weatherRecord.getWeather() == null)) {
             return R.drawable.zero0;
         }
-        float temperature = (float) getTemperature(context, temperatureUnitFromPreferences, weatherRecord.getWeather());
+        float temperature = (float) TemperatureUtil2.getTemperature(context, temperatureUnitFromPreferences, weatherRecord.getWeather());
         return getResourceForNumber(context, temperature);
     }
 

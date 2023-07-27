@@ -23,7 +23,7 @@ import java.util.Set;
 
 import static org.thosp.yourlocalweather.utils.LogToFile.appendLog;
 
-public class AppPreference {
+public class AppPreference{
 
     private static AppPreference instance;
 
@@ -36,7 +36,6 @@ public class AppPreference {
         }
         return instance;
     }
-
     private Set<Integer> forecastActivityColumns;
     private String language;
     private Boolean vibrateEnabled;
@@ -45,7 +44,6 @@ public class AppPreference {
     private Boolean notificationEnabled;
     private Boolean locationCacheEnabled;
     private Boolean voiceBtPermissionPassed;
-
     public boolean getVoiceBtPermissionPassed(Context context) {
         if (voiceBtPermissionPassed != null) {
             return voiceBtPermissionPassed;
