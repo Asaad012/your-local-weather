@@ -57,7 +57,6 @@ public class AddVoiceSettingActivity extends BaseActivity {
     private VoiceSettingParametersDbHelper voiceSettingParametersDbHelper;
     private Locale applicationLocale;
     private String timeStylePreference;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         ((YourLocalWeather) getApplication()).applyTheme(this);
@@ -500,10 +499,15 @@ public class AddVoiceSettingActivity extends BaseActivity {
             final Calendar c = Calendar.getInstance();
             c.set(Calendar.HOUR_OF_DAY, hourOfDay);
             c.set(Calendar.MINUTE, minute);
-
+            VoiceInfo voiceInfo = new VoiceInfo();
             Button voiceSettingButton = (Button) getActivity().findViewById(R.id.button_voice_setting_time);
             voiceSettingButton.setText(AppPreference.getLocalizedTime(getContext(), c.getTime(), timeStylePreference, applicationLocale));
-            prepareNextTime(getActivity(), voiceSettingId, timeStylePreference, applicationLocale, voiceSettingParametersDbHelper);
+            voiceInfo.setContext(getActivity());
+            voiceInfo.setVoiceSettingId(voiceSettingId);
+            voiceInfo.setTimeStylePreference(timeStylePreference);
+            voiceInfo.setApplicationLocale(applicationLocale);
+            voiceInfo.setVoiceSettingParametersDbHelper(voiceSettingParametersDbHelper);
+            prepareNextTime(voiceInfo);
         }
 
         public void setVoiceSettingId(Long voiceSettingId) {
@@ -551,6 +555,7 @@ public class AddVoiceSettingActivity extends BaseActivity {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                VoiceInfo voiceInfo = new VoiceInfo();
                 int positionToSave = position;
                 if (!btNotPresentOrEnabled && (position == 1)) {
                     positionToSave++;
@@ -562,7 +567,12 @@ public class AddVoiceSettingActivity extends BaseActivity {
 
                 triggerTypeChanged(positionToSave);
                 if (positionToSave == 2) {
-                    prepareNextTime(AddVoiceSettingActivity.this, voiceSettingId, timeStylePreference, applicationLocale, voiceSettingParametersDbHelper);
+                    voiceInfo.setContext(AddVoiceSettingActivity.this);
+                    voiceInfo.setVoiceSettingId(voiceSettingId);
+                    voiceInfo.setTimeStylePreference(timeStylePreference);
+                    voiceInfo.setApplicationLocale(applicationLocale);
+                    voiceInfo.setVoiceSettingParametersDbHelper(voiceSettingParametersDbHelper);
+                    prepareNextTime(voiceInfo);
                 }
             }
 
@@ -574,6 +584,7 @@ public class AddVoiceSettingActivity extends BaseActivity {
     }
 
     private void triggerTypeChanged(int currentTriggerId) {
+        VoiceInfo voiceInfo = new VoiceInfo();
         if (currentTriggerId != 2) {
             findViewById(R.id.button_voice_setting_time).setVisibility(View.GONE);
             findViewById(R.id.pref_title_tts_trigger_days_panel).setVisibility(View.GONE);
@@ -588,8 +599,13 @@ public class AddVoiceSettingActivity extends BaseActivity {
             findViewById(R.id.pref_title_tts_bt_trigger_panel).setVisibility(View.VISIBLE);
             findViewById(R.id.enabled_devices_panel).setVisibility(View.GONE);
         }
+        voiceInfo.setContext(this);
+        voiceInfo.setVoiceSettingId(voiceSettingId);
+        voiceInfo.setTimeStylePreference(timeStylePreference);
+        voiceInfo.setApplicationLocale(applicationLocale);
+        voiceInfo.setVoiceSettingParametersDbHelper(voiceSettingParametersDbHelper);
         YourLocalWeather.executor.submit(() -> {
-            prepareNextTime(this, voiceSettingId, timeStylePreference, applicationLocale, voiceSettingParametersDbHelper);
+            prepareNextTime(voiceInfo);
         });
     }
 
@@ -966,7 +982,6 @@ public class AddVoiceSettingActivity extends BaseActivity {
                 VoiceSettingParamType.VOICE_SETTING_PARTS_TO_SAY.getVoiceSettingParamTypeId(),
                 partsToSay);
     }
-
     private Long enableAndFillCustomText(int index,
                                          boolean checked,
                                          Long partsToSay,
@@ -1056,18 +1071,81 @@ public class AddVoiceSettingActivity extends BaseActivity {
                     voiceSettingId,
                     VoiceSettingParamType.VOICE_SETTING_TRIGGER_DAY_IN_WEEK.getVoiceSettingParamTypeId(),
                     daysOfWeek);
-            prepareNextTime(this, voiceSettingId, timeStylePreference, applicationLocale, voiceSettingParametersDbHelper);
+            VoiceInfo voiceInfo = new VoiceInfo();
+            voiceInfo.setContext(this);
+            voiceInfo.setVoiceSettingId(voiceSettingId);
+            voiceInfo.setTimeStylePreference(timeStylePreference);
+            voiceInfo.setApplicationLocale(applicationLocale);
+            voiceInfo.setVoiceSettingParametersDbHelper(voiceSettingParametersDbHelper);
+            prepareNextTime(voiceInfo);
         });
     }
+    private static class VoiceInfo{
+        Activity context;
+        Long voiceSettingId;
+        String timeStylePreference;
+        Locale applicationLocale;
+        VoiceSettingParametersDbHelper voiceSettingParametersDbHelper;
 
-    private static void prepareNextTime(Activity context, Long voiceSettingId, String timeStylePreference, Locale applicationLocale, VoiceSettingParametersDbHelper voiceSettingParametersDbHelper) {
-        TimeUtils.setupAlarmForVoice(context);
+        public VoiceInfo() {
+        }
+
+        public VoiceInfo(Activity context, Long voiceSettingId, String timeStylePreference, Locale applicationLocale, VoiceSettingParametersDbHelper voiceSettingParametersDbHelper) {
+            this.context = context;
+            this.voiceSettingId = voiceSettingId;
+            this.timeStylePreference = timeStylePreference;
+            this.applicationLocale = applicationLocale;
+            this.voiceSettingParametersDbHelper = voiceSettingParametersDbHelper;
+        }
+
+        public Activity getContext() {
+            return context;
+        }
+
+        public void setContext(Activity context) {
+            this.context = context;
+        }
+
+        public Long getVoiceSettingId() {
+            return voiceSettingId;
+        }
+
+        public void setVoiceSettingId(Long voiceSettingId) {
+            this.voiceSettingId = voiceSettingId;
+        }
+
+        public String getTimeStylePreference() {
+            return timeStylePreference;
+        }
+
+        public void setTimeStylePreference(String timeStylePreference) {
+            this.timeStylePreference = timeStylePreference;
+        }
+
+        public Locale getApplicationLocale() {
+            return applicationLocale;
+        }
+
+        public void setApplicationLocale(Locale applicationLocale) {
+            this.applicationLocale = applicationLocale;
+        }
+
+        public VoiceSettingParametersDbHelper getVoiceSettingParametersDbHelper() {
+            return voiceSettingParametersDbHelper;
+        }
+
+        public void setVoiceSettingParametersDbHelper(VoiceSettingParametersDbHelper voiceSettingParametersDbHelper) {
+            this.voiceSettingParametersDbHelper = voiceSettingParametersDbHelper;
+        }
+    }
+    private static void prepareNextTime(VoiceInfo voiceInfo) {
+        TimeUtils.setupAlarmForVoice(voiceInfo.getContext());
         Calendar c  = Calendar.getInstance();
-        Long nextTimeDate = TimeUtils.setupAlarmForVoiceForVoiceSetting(context, voiceSettingId, voiceSettingParametersDbHelper);
+        Long nextTimeDate = TimeUtils.setupAlarmForVoiceForVoiceSetting(voiceInfo.getContext(), voiceInfo.getVoiceSettingId(), voiceInfo.getVoiceSettingParametersDbHelper());
         if (nextTimeDate != null) {
-            TextView nextTimeView = context.findViewById(R.id.voice_setting_next_time);
+            TextView nextTimeView = voiceInfo.getContext().findViewById(R.id.voice_setting_next_time);
             c.setTimeInMillis(nextTimeDate);
-            nextTimeView.setText(" (-> " + AppPreference.getLocalizedDateTime(context, c.getTime(), false, timeStylePreference, applicationLocale) + ")");
+            nextTimeView.setText(" (-> " + AppPreference.getLocalizedDateTime(voiceInfo.getContext(), c.getTime(), false, voiceInfo.getTimeStylePreference(), voiceInfo.getApplicationLocale()) + ")");
         }
     }
 }
